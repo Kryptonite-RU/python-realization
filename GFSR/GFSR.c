@@ -1,4 +1,4 @@
-#include<stdio.h>
+#include <stdio.h>
 #include <stdint.h>
 
 #define P 521
@@ -60,15 +60,13 @@ uint32_t gfsr5(void)
     return state[state_i++];
 } 
 
-void form_mat(){
-    uint32_t s = 0xc90fdaa2; 
+void form_mat(uint32_t s){
     init_gfsr5(s);
     FILE *f = fopen("H-prime","w");
     FILE *f_bin = fopen("H-prime_bin","w"); 
     FILE *f_raw = fopen("H-prime_raw","w"); 
     for (int i = 0; i < 65522; i++){
         uint32_t x = gfsr5();
-        fprintf(f, "%08x", x);
         fprintf(f_raw, "%08x", x);
         fwrite(&x, sizeof(x), 1, f_bin);
         if ((i+1) % 8 == 0){ 
@@ -82,8 +80,7 @@ void form_mat(){
     fclose(f_raw);
 }
 
-void form_key(){
-    uint32_t s = 0xaaaaaaaa; 
+void form_key(uint32_t s){
     init_gfsr5(s);
     FILE *f = fopen("s","w");
     FILE *f_bin = fopen("s_bin","w"); 
@@ -115,9 +112,25 @@ void form_key(){
     fclose(f_raw);
 }
 
+int div_up(int x, int y)
+{
+    return (x + y - 1) / y;
+}
+
 int main()
 {
-    form_mat();
-    form_key();
+    //uint32_t s = 0xc90fdaa2; 
+    //form_mat(s);
+    ////uint32_t s = 0xaaaaaaaa; 
+    ////form_key(s);
+    uint32_t s;
+    int n;
+    scanf("%d %d", &s, &n);
+    init_gfsr5(s); 
+    int end = div_up(n,32);
+    for (int i = 0; i < end; i++){
+        uint32_t x = gfsr5();
+        printf("%08x", x); 
+    } 
     return 0;
 }

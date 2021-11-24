@@ -22,4 +22,4 @@ on the standard output. Otherwise the programm throws an exception and writes cl
 
 Both algorithms rely on the function library contained in the file _"helpers.py"_.
 
-We are using pystribog [library](https://github.com/ddulesov/pystribog/).
+We are using [pystribog library](https://github.com/ddulesov/pystribog/).
