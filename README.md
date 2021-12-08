@@ -23,3 +23,11 @@ on the standard output. Otherwise the programm throws an exception and writes cl
 Both algorithms rely on the function library contained in the file _"helpers.py"_.
 
 We are using pystribog [library](https://github.com/ddulesov/pystribog/).
+
+
+**Additional information**
+
+*  All generated files contain data in hex-format.
+*  Public parameter *H'* generation is possible with function *form_mat()* that can be found in *GFSR.c*. 
+*  As a subprogram *GFSR.c* given *seed* and number *n* outputs *x* random bits, where *x* is minimum multiple of 32 that is at least n.
+*  To calculate the hash value of one of the generated files one can use function *hash_of_file()* from *helpers.py*.

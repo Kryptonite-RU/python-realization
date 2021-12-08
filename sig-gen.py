@@ -6,14 +6,12 @@ import binascii
 import math
  
 from helpers import *
- 
-
-np.random.seed(4)
-random.seed(3)
+  
 
 k = 1448  
 n = 2*k
 d = 137  
+w = 318
 nlog = math.ceil(math.log(n,2))
 
 test_m = np.random.randint(0, 2, 15)
@@ -24,8 +22,8 @@ def gen_perm():
     return np.array(perm, dtype=int)
 
 def secret_key_gen(): 
-    s = [1 for i in range(d)]
-    s = s + [0 for i in range(n-d)]
+    s = [1 for i in range(w)]
+    s = s + [0 for i in range(n-w)]
     local_perm = gen_perm()
     s = permute(s, local_perm) 
     return np.array(s, dtype=int) 
@@ -86,8 +84,7 @@ for j in range(d): #1й внешний цикл, как прописано в с
 
 m_test = b'fedcba9876543210' 
 f_input = m_test + f_input  
-f = F(f_input, d) 
-#print(f)  
+f = F(f_input, d)  
 
 
 for fj, u, perm in zip(f, all_u, all_perms):
