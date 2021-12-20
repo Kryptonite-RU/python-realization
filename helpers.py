@@ -1,4 +1,5 @@
 from functools import reduce
+from os import F_LOCK
 import random
 import numpy as np
 import _pystribog
@@ -25,10 +26,8 @@ def permute(x, perm):
     n = len(perm)
     res = [0 for i in range(n)]
     for i in range(n):
-        t = perm[i]
-        #print(i, start[i], t, start[t])
-        res[i] = x[t]
-    #print(start, perm, tmp)
+        t = perm[i] 
+        res[i] = x[t] 
     return res
 
 
@@ -47,16 +46,14 @@ def print_s_to_pdf(s, n):
     hex_str_s += '} \\\\'
     print(hex_str_s)
 
-def string_to_bytes(s,b):
-    #print(len(s))
+def string_to_bytes(s,b): 
     if b == 16:
         assert len(s) % 2 == 0
         return bytes.fromhex(s) 
     else:
         return int(s, b).to_bytes(len(s) // 8, byteorder='big')
 
-def bin_to_hex_string(str_s):
-    #print(str_s)
+def bin_to_hex_string(str_s): 
     hex_str_s = '' 
     n = len(str_s)
     for i in range(n//4): 
@@ -65,7 +62,7 @@ def bin_to_hex_string(str_s):
 
 def print_s_to_byte_file(s):
     str_s =''.join(str(e) for e in s)
-    hex_str_s = bin_to_hex_string(str_s, n)
+    hex_str_s = bin_to_hex_string(str_s, len(str_s))
     with open('s_bin', 'wb') as output:
         output.write(bytearray(int(i, 16) for i in hex_str_s)) 
 
@@ -109,8 +106,7 @@ def mul(mat, x):
     x_left = x[:k]
     x_right = x[k:]
     res = np.dot(H, x_left) + x_right 
-    bin_res = list([res[i] % 2 for i in range(len(res))])
-    #print(res, bin_res)
+    bin_res = list([res[i] % 2 for i in range(len(res))]) 
     return bin_res
 
 def invert_notation(x): 
@@ -122,8 +118,7 @@ def to_ternary(x):
     return invert_notation(x)[::-1]
 
 def to_file(x, file_name):
-    with open(file_name, "wb") as f:
-        #print(binascii.hexlify(bit_vector_to_bytes(x)))
+    with open(file_name, "wb") as f: 
         f.write(binascii.hexlify(bit_vector_to_bytes(x))) 
 
 def from_hex_file_to_bytes(filename):
@@ -134,9 +129,30 @@ def from_hex_file_to_bit_vector(filename):
     res = from_hex_file_to_bytes(filename)
     return bytes_to_bit_vector(res)   
 
+def bytes_to_int(byte_vec):
+    res = 0
+    for i in range(len(byte_vec)):
+        res += byte_vec[i] * 256**i
+    return res
+
 def F(f_input, d):
     f = h_256(f_input)
     f = int(binascii.hexlify(f), 16)*3**d  
     f = f >> 256 
     f = to_ternary(f).rjust(d,'0')
     return f
+
+def hash_of_file(filename_in, filename_out):
+    with open(filename_in, "rb") as f_in:
+        text = f_in.read()
+    with open(filename_out, "wb") as f_out:
+        h = h_512(text)        
+        f_out.write(binascii.hexlify(h))
+
+def perm_to_file(perm, file_name):
+    with open(file_name, "w") as f:
+        for i in range(len(perm)): 
+            f.write('\\texttt{')
+            f.write(str(perm[i]))
+            f.write('}, ') 
+        

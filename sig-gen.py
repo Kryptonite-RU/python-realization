@@ -1,30 +1,41 @@
-from functools import reduce
-import random
 import numpy as np
 import _pystribog
 import binascii
 import math
+import subprocess
  
-from helpers import *
-  
+from helpers import * 
 
 k = 1448  
 n = 2*k
 d = 137  
 w = 318
-nlog = math.ceil(math.log(n,2))
+nlog = math.ceil(math.log(n,2)) 
 
-test_m = np.random.randint(0, 2, 15)
+def rand_num(seed, size):
+    rand_num_hex = subprocess.check_output(['../GFSR/a.out'], input = '{} {}'.format(seed, 32 * size).encode())
+    b = binascii.unhexlify(rand_num_hex)
+    return np.array([bytes_to_int(b[4*i:4*i+4]) for i in range(size)], dtype=np.int64)
 
-def gen_perm():
+def shuffle(seed, vec):
+    rand_nums = rand_num(seed, len(vec) - 2)
+    for i in range(len(vec)-2): 
+        r = rand_nums[i] * (len(vec) - i) // 2**32
+        j = i + r
+        tmp = vec[i]
+        vec[i] = vec[j]
+        vec[j] = tmp
+    return vec   
+
+def gen_perm(seed):
     perm = list(range(n))
-    random.shuffle(perm) 
+    shuffle(seed, perm) 
     return np.array(perm, dtype=int)
 
 def secret_key_gen(): 
     s = [1 for i in range(w)]
     s = s + [0 for i in range(n-w)]
-    local_perm = gen_perm()
+    local_perm = gen_perm(0xadf85459)
     s = permute(s, local_perm) 
     return np.array(s, dtype=int) 
 
@@ -36,6 +47,7 @@ with open(fname, "r") as f:
         for bit in bin(int(word, base=16))[2:].rjust(32, '0'):
             buf.append(int(bit))
 H = np.array(buf, dtype=int)
+hash_of_file('../GFSR/H-prime_raw', "H-hash.txt")
 
 
 sig = b''
@@ -54,12 +66,14 @@ all_perms_binary = []
 f_input = b''
 for j in range(d): #1й внешний цикл, как прописано в стандарте
 
-    #генерируем случайности 
-    u = np.random.randint(0, 2, n)
-    perm = gen_perm()
+    #генерируем случайности  
+    u_hex = subprocess.check_output(['../GFSR/a.out'], input = '{} {}'.format(j, n).encode())
+    u = bytes_to_bit_vector(binascii.unhexlify(u_hex)) 
+    u = u[:n-((n+31)//32)*32] #сокращаем длину, которая из-за генератора кратна 32
+    perm = gen_perm(j+d)
     all_u.append(u)
     all_perms.append(perm)
-    all_perms_binary.append([bin(perm[i])[2:].rjust(nlog, '0') for i in range(n)])   
+    all_perms_binary.append([bin(perm[i])[2:].rjust(nlog, '0') for i in range(n)])    
 
     s_u = permute(u, perm) 
     u_plus_s = [u[i] ^ s[i] for i in range(n)] 
@@ -108,3 +122,4 @@ for fj, u, perm in zip(f, all_u, all_perms):
 f = open('signature.txt', 'wb') 
 f.write(binascii.hexlify(sig))
 f.close()
+hash_of_file('signature.txt', 'sig-hash.txt')

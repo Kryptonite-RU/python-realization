@@ -6,15 +6,18 @@ import math
 
 from helpers import *
  
-##### хэш не работает для нечетных k! 
+##### хэш не работает для нечетных k!
+ 
 
-k = 1448
+k = 1448 
 n = 2*k
-d = 137
+d = 137 
 w = 318
 boarder = 3*512*137 #len of c_part
 nlog = math.ceil(math.log(n,2))
-nlogn = nlog*n  
+nlogn = nlog*n
+
+test_m = np.random.randint(0, 2, 15)
 
 buf = []
 fname = "../GFSR/H-prime"
@@ -34,12 +37,12 @@ y = from_hex_file_to_bit_vector("public-key.txt")
   
 sig = from_hex_file_to_bit_vector("signature.txt") 
 c_part = sig[:boarder] 
-r_part = sig[boarder:] 
+r_part = sig[boarder:]
+ 
 
 m_test = b'fedcba9876543210' 
 f_input = m_test + bit_vector_to_bytes(c_part)
-f = F(f_input, d)
-
+f = F(f_input, d) 
 
 last_r = 0
 for j in range(d):
