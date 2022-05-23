@@ -1,20 +1,28 @@
 #include <stdio.h>
 #include <stdint.h>
+#include <string.h>
+
+enum Format {
+    FormatTex,
+    FormatBinary,
+    FormatHex
+};
 
 #define P 521
 #define Q1 86
 #define Q2 197
 #define Q3 447
 #define W 32
+
 /* Q1 < Q2 < Q3 */
 /* W должно быть степенью 2 */
 static uint32_t state[P] ;
-static int state_i; 
+static int state_i;
 void init_gfsr5(uint32_t s)
 {
     int i, j, k;
     static uint32_t x[P];
-    s &= 0xffffffffUL; 
+    s &= 0xffffffffUL;
 
     for (i=0 ; i<P ; i++) {
         x[i] = s >> 31 ;
@@ -58,66 +66,92 @@ uint32_t gfsr5(void)
             *p0++ ^= *p1++ ^ *p2++ ^ *p3++;
     }
     return state[state_i++];
-} 
-
-void form_mat(){
-    uint32_t s = 0xc90fdaa2; 
-    init_gfsr5(s);
-    FILE *f = fopen("H-prime","w");
-    FILE *f_bin = fopen("H-prime_bin","w"); 
-    FILE *f_raw = fopen("H-prime_raw","w"); 
-    for (int i = 0; i < 65522; i++){
-        uint32_t x = gfsr5();
-        fprintf(f, "%08x", x);
-        fprintf(f_raw, "%08x", x);
-        fwrite(&x, sizeof(x), 1, f_bin);
-        if ((i+1) % 8 == 0){ 
-            fprintf(f, "\n");
-        } else {
-            fprintf(f, " ");
-        }
-    }
-    fclose(f);
-    fclose(f_bin);
-    fclose(f_raw);
 }
 
-void form_key(){
-    uint32_t s = 0xaaaaaaaa; 
-    init_gfsr5(s);
-    FILE *f = fopen("s","w");
-    FILE *f_bin = fopen("s_bin","w"); 
-    FILE *f_raw = fopen("s_raw","w"); 
-    int my_max = 91;
-    for (int i = 0; i < my_max; i++){
+void generate(uint32_t seed, int n_bytes, enum Format format, FILE* f) {
+    init_gfsr5(seed);
+    int n_words = (n_bytes + 3) / 4;
+    int leftover_bytes = n_bytes % 4;
+    for (int i = 0; i < n_words; i++){
         uint32_t x = gfsr5();
-        fprintf(f, "\\texttt{%08x}", x);
-        if (i == my_max - 1){
-            x >>= 16; 
-            // ВНИМАНИЕ!!! при других параметрах константа изменится!
-            // она соответствует лишнему числу бит, полученному в результате генерации 32-битных последовательностей
-            fprintf(f_raw, "%04x", x);
-            fwrite(&x, 16, 1, f_bin); 
-            // ВНИМАНИЕ!!! тоже обратить внимание на константу
-        }
-        else{
-            fprintf(f_raw, "%08x", x);
-            fwrite(&x, sizeof(x), 1, f_bin);
-        }
-        if ((i+1) % 7 == 0){ 
-            fprintf(f, " \\\\ \n");
+        int cur_bytes;
+        if (i == n_words - 1 && leftover_bytes != 0) {
+            cur_bytes = leftover_bytes;
+            x >>= (32 - 8 * leftover_bytes);
         } else {
-            fprintf(f, " & ");
+            cur_bytes = 4;
+        }
+        switch (format) {
+            case FormatBinary:
+                fwrite(&x, cur_bytes, 1, f);
+                break;
+            case FormatHex:
+                fprintf(f, "%0*x", cur_bytes * 2, x);
+                break;
+            case FormatTex:
+                fprintf(f, "\\texttt{%0*x}", cur_bytes * 2, x);
+                if ((i+1) % 7 == 0){
+                    printf(" \\\\ \n");
+                } else {
+                    printf(" & ");
+                }
+                break;
         }
     }
-    fclose(f);
-    fclose(f_bin);
-    fclose(f_raw);
 }
 
-int main()
+int main(int argc, char** argv)
 {
-    form_mat();
-    form_key();
+    if (argc != 5) {
+        fprintf(stderr, "USAGE: %s <seed in hex> <num of rand bits> <format> <out-file>\n", argv[0]);
+        return 1;
+    }
+
+    uint32_t seed;
+    sscanf(argv[1], "%x", &seed);
+
+    int n_bits;
+    sscanf(argv[2], "%d", &n_bits);
+    if (n_bits % 8 != 0) {
+        fprintf(stderr, "Number of bits must be a multiple of 8, got %d\n", n_bits);
+        return 1;
+    }
+
+    int n_bytes = n_bits / 8;
+
+    enum Format format;
+    const char* format_str = argv[3];
+    if (strcmp(format_str, "tex") == 0) {
+        format = FormatTex;
+    } else if (strcmp(format_str, "binary") == 0) {
+        format = FormatBinary;
+    } else if (strcmp(format_str, "hex") == 0) {
+        format = FormatHex;
+    } else {
+        fprintf(stderr, "Format must be one of \"tex\", \"binary\" or \"hex\", got \"%s\"\n", format_str);
+        return 1;
+    }
+
+    FILE* f = fopen(argv[4], "w");
+    if (!f) {
+        fprintf(stderr, "Cannot open %s for writing", argv[4]);
+        return 1;
+    }
+    generate(seed, n_bytes, format, f);
+
+    //uint32_t s = 0xc90fdaa2;
+    //form_mat(s);
+    //uint32_t s = 0xaaaaaaaa;
+    //form_key(s);
+    //
+    //uint32_t s;
+    //int n;
+    //scanf("%d %d", &s, &n);
+    //init_gfsr5(s);
+    //int end = div_up(n,32);
+    //for (int i = 0; i < end; i++){
+    //    uint32_t x = gfsr5();
+    //    printf("%08x", x);
+    //}
     return 0;
 }

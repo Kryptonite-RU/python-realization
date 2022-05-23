@@ -1,5 +1,4 @@
 from functools import reduce
-from os import F_LOCK
 import random
 import numpy as np
 import _pystribog
@@ -12,13 +11,13 @@ h_256_obj = _pystribog.StribogHash( _pystribog.Hash256 )
 def h_512(s):
     assert isinstance(s, bytes)
     h_512_obj.clear()
-    h_512_obj.update(s[-1::-1])
+    h_512_obj.update(s)
     return h_512_obj.digest()
 
 def h_256(s):
     assert isinstance(s, bytes)
     h_256_obj.clear()
-    h_256_obj.update(s[-1::-1])
+    h_256_obj.update(s)
     return h_256_obj.digest()
 
 
@@ -81,6 +80,15 @@ def bytes_to_bit_vector(v):
     """
     return np.unpackbits(np.frombuffer(v, dtype=np.uint8), bitorder='big').astype(int)
 
+
+def read_matrix_hex(fname, shape):
+    with open(fname, "r") as f:
+        hex_str = f.read()
+    bytes_ = string_to_bytes(hex_str, 16)
+    vec = bytes_to_bit_vector(bytes_)
+    return np.reshape(vec, shape)
+
+ 
 def permutation_to_bytes(perm, nlog):
     """
         [3,2,1,0] -> np.array([1,1|1,0|0,1|0,0]) -> b'\xe4'
@@ -102,10 +110,10 @@ def bit_vector_to_permutation(vec, nlog):
 
 def mul(mat, x):
     k = len(x) // 2
-    H = mat.reshape(k,k)
+    # H = mat.reshape(k,k)
     x_left = x[:k]
     x_right = x[k:]
-    res = np.dot(H, x_left) + x_right 
+    res = np.dot(mat, x_left) + x_right 
     bin_res = list([res[i] % 2 for i in range(len(res))]) 
     return bin_res
 
@@ -142,17 +150,24 @@ def F(f_input, d):
     f = to_ternary(f).rjust(d,'0')
     return f
 
-def hash_of_file(filename_in, filename_out):
+def hash_of_file(filename_in, filename_out, type="512"):
     with open(filename_in, "rb") as f_in:
-        text = f_in.read()
+        message_hex = f_in.read()
+        message = binascii.unhexlify(message_hex)
     with open(filename_out, "wb") as f_out:
-        h = h_512(text)        
+        if type == "256":
+            h_fun = h_256
+        elif type == "512":
+            h_fun = h_512
+        else:
+            assert False, "Expected \"256\" or \"512\""
+        h = h_fun(message)        
         f_out.write(binascii.hexlify(h))
+
 
 def perm_to_file(perm, file_name):
     with open(file_name, "w") as f:
         for i in range(len(perm)): 
             f.write('\\texttt{')
             f.write(str(perm[i]))
-            f.write('}, ') 
-        
+            f.write('}, ')
