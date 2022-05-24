@@ -91,9 +91,9 @@ void generate(uint32_t seed, int n_bytes, enum Format format, FILE* f) {
             case FormatTex:
                 fprintf(f, "\\texttt{%0*x}", cur_bytes * 2, x);
                 if ((i+1) % 7 == 0){
-                    printf(" \\\\ \n");
+                    fprintf(f, " \\\\ \n");
                 } else {
-                    printf(" & ");
+                    fprintf(f, " & ");
                 }
                 break;
         }
