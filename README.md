@@ -29,7 +29,7 @@ The matrix $H'$ is generated with GFSR algorithm. Execute the following command
 
 To generate the key, execute the following command:
 ```
-python3 signature/key-gen.py --h-path data/H-prime.hex --params-path signature/params.json --seed 64ea02fc --secret-key-path data/secret-key.hex --public-key-path data/public-key.hex
+python3 signature/key-gen.py --h-path data/H-prime.hex --params-path signature/params.json --seed 64ea04bf --secret-key-path data/secret-key.hex --public-key-path data/public-key.hex
 ```
 The secret and public keys will be written to specified files.
 Feel free to use your own seed.

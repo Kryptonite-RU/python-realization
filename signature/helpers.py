@@ -144,9 +144,9 @@ def bytes_to_int(byte_vec):
     return res
 
 def F(f_input, d):
-    f = h_256(f_input)
+    f = h_512(f_input)
     f = int(binascii.hexlify(f), 16)*3**d  
-    f = f >> 256 
+    f = f >> 512 
     f = to_ternary(f).rjust(d,'0')
     return f
 
