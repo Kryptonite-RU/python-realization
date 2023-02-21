@@ -1,5 +1,11 @@
 # Шиповник (Shipovnik, Rose hip) python realization
 
+## Installation prerequisites
+
+1. `Python 3.8`, `gcc 8.3` or higher, `git 2.22` or higher for Windows, Linux and macOS;
+
+2. `WSL 2` for Windows. 
+
 ## Build
 
   1. To build GFSR, go to `GFSR` directory and execute
@@ -61,3 +67,12 @@ python3 signature/hash.py --path data/H-prime.hex --type 512 --hash-path data/H-
 ```
 
 **NOTE:** the contents of a file are expected to be in hex format.
+
+### Moving to tex-format
+
+To make latex table items of form `& \texttt{smth}, & ` execute the folowing command with your options: 
+
+```
+python3 signature/to_tex.py --in-file .\data\u_d-1.txt --out-file .\data\u_d-1.tex --groups-in-row 7
+```
+ 
