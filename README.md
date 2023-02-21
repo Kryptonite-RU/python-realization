@@ -12,11 +12,7 @@
 ```
 gcc -O3 GFSR.c -o GFSR
 ```
-2. To build pystribog [library](https://github.com/ddulesov/pystribog/), go to `signature/contrib/pystribog` and execute
-  ```
-  python3 setup.py build install
-  ```
-  For detailed instructions refer to `README.md`.
+2. To build [pystribog library](https://github.com/ddulesov/pystribog/) follow the instructions for that repository.
   
 
 ## Execution
